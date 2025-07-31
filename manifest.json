@@ -1,20 +1,20 @@
 {
-  "name": "PSX Commission Calculator",
+  "name": "PSX Stock Calculator",
   "short_name": "PSXCalc",
-  "start_url": ".",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f4f6f9",
+  "background_color": "#ffffff",
   "theme_color": "#3498db",
   "icons": [
     {
       "src": "icon-192.png",
-      "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "type": "image/png"
     },
     {
       "src": "icon-512.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ]
 }
