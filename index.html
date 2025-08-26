@@ -2,74 +2,82 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>PSX Commission Calculator</title>
-
-  <!-- PWA Meta Tags -->
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#3498db" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="PSXCalc" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
 
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
       background: #f4f6f9;
       margin: 0;
       padding: 0;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       min-height: 100vh;
     }
 
     .container {
-      padding: 0 16px;
+      padding: 16px;
       width: 100%;
+      max-width: 480px;
       box-sizing: border-box;
     }
 
     .calculator {
       background: white;
-      padding: 30px 20px;
+      padding: 20px;
       border-radius: 16px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-      max-width: 400px;
-      margin: auto;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     .calculator h2 {
       text-align: center;
       margin-bottom: 20px;
       color: #2c3e50;
+      font-size: 20px;
     }
 
-    .calculator input {
+    label {
+      display: block;
+      margin: 6px 0 4px;
+      font-weight: 500;
+      font-size: 13px;
+      color: #34495e;
+    }
+
+    input {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
+      padding: 12px;
+      margin-bottom: 12px;
       border: 1px solid #ccc;
       border-radius: 8px;
-      font-size: 16px;
+      font-size: 15px;
       box-sizing: border-box;
     }
 
-    .calculator button {
+    .btn {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       background-color: #3498db;
       border: none;
       border-radius: 8px;
       color: white;
-      font-size: 16px;
+      font-size: 15px;
+      font-weight: bold;
       cursor: pointer;
-      transition: background-color 0.3s;
+      margin-top: 6px;
     }
 
-    .calculator button:hover {
+    .btn:hover {
       background-color: #2980b9;
+    }
+
+    .btn-clear {
+      background-color: #e74c3c;
+    }
+    .btn-clear:hover {
+      background-color: #c0392b;
     }
 
     #output {
@@ -80,69 +88,126 @@
       font-size: 15px;
       line-height: 1.6;
     }
+
+    .entry {
+      margin-bottom: 16px;
+      border: 1px solid #ddd;
+      padding: 12px;
+      border-radius: 8px;
+      background: #fafafa;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="calculator">
-      <h2>PSX Stock Commission Calculator</h2>
+      <h2>📊 PSX Stock Commission Calculator</h2>
 
-      <input id="quantity" type="number" placeholder="Quantity" />
-      <input id="rate" type="number" step="0.01" placeholder="Rate per Share" />
-      <input id="brokerRate" type="number" step="0.0001" placeholder="Broker Rate (%)" />
-      <input id="sst" type="number" step="0.01" placeholder="S.S.T" />
-      <input id="cdcCharges" type="number" step="0.01" placeholder="CDC Charges" />
+      <div id="entries">
+        <div class="entry">
+          <label>Quantity</label>
+          <input type="number" placeholder="Enter Quantity" class="qty">
 
-      <button onclick="calculate()">Calculate</button>
+          <label>Rate per Share</label>
+          <input type="number" step="0.01" placeholder="Enter Rate" class="rate">
+
+          <label>Broker Fee per Share</label>
+          <input type="number" step="0.0001" placeholder="Enter Broker Fee/Share" class="broker">
+        </div>
+      </div>
+
+      <button class="btn" onclick="addRow()">+ Add More Shares</button>
+
+      <label for="sst">SST (Sales Tax)</label>
+      <input id="sst" type="number" step="0.01" placeholder="Enter SST" />
+
+      <label for="cdc">CDC Charges</label>
+      <input id="cdc" type="number" step="0.01" placeholder="Enter CDC Charges" />
+
+      <button class="btn" onclick="calculate()">Calculate</button>
+      <button class="btn btn-clear" onclick="clearAll()">Clear</button>
 
       <div id="output"></div>
     </div>
   </div>
 
   <script>
-    function calculate() {
-      const quantity = parseFloat(document.getElementById("quantity").value);
-      const rate = parseFloat(document.getElementById("rate").value);
-      const brokerRate = parseFloat(document.getElementById("brokerRate").value);
-      const sst = parseFloat(document.getElementById("sst").value);
-      const cdcCharges = parseFloat(document.getElementById("cdcCharges").value);
+    function addRow() {
+      const entry = document.createElement("div");
+      entry.className = "entry";
+      entry.innerHTML = `
+        <label>Quantity</label>
+        <input type="number" placeholder="Enter Quantity" class="qty">
 
-      if (
-        isNaN(quantity) ||
-        isNaN(rate) ||
-        isNaN(brokerRate) ||
-        isNaN(sst) ||
-        isNaN(cdcCharges)
-      ) {
+        <label>Rate per Share</label>
+        <input type="number" step="0.01" placeholder="Enter Rate" class="rate">
+
+        <label>Broker Fee per Share</label>
+        <input type="number" step="0.0001" placeholder="Enter Broker Fee/Share" class="broker">
+      `;
+      document.getElementById("entries").appendChild(entry);
+    }
+
+    function calculate() {
+      const rows = document.querySelectorAll("#entries .entry");
+      let totalQty = 0, grossAmount = 0, brokerAmount = 0;
+
+      rows.forEach(row => {
+        const qty = parseFloat(row.querySelector(".qty")?.value);
+        const rate = parseFloat(row.querySelector(".rate")?.value);
+        const broker = parseFloat(row.querySelector(".broker")?.value);
+
+        if (!isNaN(qty) && !isNaN(rate) && !isNaN(broker)) {
+          totalQty += qty;
+          grossAmount += qty * rate;
+          brokerAmount += qty * broker;
+        }
+      });
+
+      const sst = parseFloat(document.getElementById("sst").value) || 0;
+      const cdc = parseFloat(document.getElementById("cdc").value) || 0;
+
+      if (totalQty === 0) {
         document.getElementById("output").innerHTML =
-          "<span style='color:red;'>Please fill all fields correctly.</span>";
+          "<span style='color:red;'>Please enter at least one row with valid values.</span>";
         return;
       }
 
-      const grossAmount = quantity * rate;
-      const brokerAmount = grossAmount * (brokerRate / 1000);
-      const netAmount = grossAmount - brokerAmount - sst - cdcCharges;
+      const avgRate = grossAmount / totalQty;
+      const totalCharges = brokerAmount + sst + cdc;
+      const netAmount = grossAmount + totalCharges;
+      const commissionPerShare = totalCharges / totalQty;
 
       document.getElementById("output").innerHTML = `
+        <strong>Total Shares:</strong> ${totalQty}<br>
         <strong>Gross Amount:</strong> PKR ${grossAmount.toFixed(2)}<br>
+        <strong>Weighted Avg Price:</strong> PKR ${avgRate.toFixed(10)}<br>
         <strong>Broker Amount:</strong> PKR ${brokerAmount.toFixed(2)}<br>
+        <strong>SST:</strong> PKR ${sst.toFixed(2)}<br>
+        <strong>CDC Charges:</strong> PKR ${cdc.toFixed(2)}<br>
+        <strong>Total Charges:</strong> PKR ${totalCharges.toFixed(2)}<br>
         <strong>Net Amount:</strong> PKR ${netAmount.toFixed(2)}<br>
-        <strong>Commission per Share:</strong> PKR ${((brokerAmount + sst + cdcCharges) / quantity).toFixed(4)}
+        <strong>Commission per Share:</strong> PKR ${commissionPerShare.toFixed(6)}
       `;
     }
 
-    // Register Service Worker
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", function () {
-        navigator.serviceWorker
-          .register("sw.js")
-          .then(function (registration) {
-            console.log("ServiceWorker registered:", registration.scope);
-          })
-          .catch(function (err) {
-            console.log("ServiceWorker registration failed:", err);
-          });
-      });
+    function clearAll() {
+      const entriesDiv = document.getElementById("entries");
+      entriesDiv.innerHTML = `
+        <div class="entry">
+          <label>Quantity</label>
+          <input type="number" placeholder="Enter Quantity" class="qty">
+
+          <label>Rate per Share</label>
+          <input type="number" step="0.01" placeholder="Enter Rate" class="rate">
+
+          <label>Broker Fee per Share</label>
+          <input type="number" step="0.0001" placeholder="Enter Broker Fee/Share" class="broker">
+        </div>
+      `;
+      document.getElementById("sst").value = "";
+      document.getElementById("cdc").value = "";
+      document.getElementById("output").innerHTML = "";
     }
   </script>
 </body>
