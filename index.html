@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>PSX Commission Calculator</title>
 
+  <!-- Your original styles (unchanged) -->
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, sans-serif;
@@ -16,28 +18,24 @@
       align-items: flex-start;
       min-height: 100vh;
     }
-
     .container {
       padding: 16px;
       width: 100%;
-      max-width: 480px;
+      max-width: 480px; /* keep your original narrow card */
       box-sizing: border-box;
     }
-
     .calculator {
       background: white;
       padding: 20px;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
-
     .calculator h2 {
       text-align: center;
       margin-bottom: 20px;
       color: #2c3e50;
       font-size: 20px;
     }
-
     label {
       display: block;
       margin: 6px 0 4px;
@@ -45,7 +43,6 @@
       font-size: 13px;
       color: #34495e;
     }
-
     input {
       width: 100%;
       padding: 12px;
@@ -55,7 +52,6 @@
       font-size: 15px;
       box-sizing: border-box;
     }
-
     .btn {
       width: 100%;
       padding: 14px;
@@ -68,18 +64,9 @@
       cursor: pointer;
       margin-top: 6px;
     }
-
-    .btn:hover {
-      background-color: #2980b9;
-    }
-
-    .btn-clear {
-      background-color: #e74c3c;
-    }
-    .btn-clear:hover {
-      background-color: #c0392b;
-    }
-
+    .btn:hover { background-color: #2980b9; }
+    .btn-clear { background-color: #e74c3c; }
+    .btn-clear:hover { background-color: #c0392b; }
     #output {
       margin-top: 20px;
       background-color: #ecf0f1;
@@ -88,7 +75,6 @@
       font-size: 15px;
       line-height: 1.6;
     }
-
     .entry {
       margin-bottom: 16px;
       border: 1px solid #ddd;
@@ -97,10 +83,64 @@
       background: #fafafa;
     }
   </style>
+
+  <!-- Small scoped styles for tabs + PDF cards (won’t change your manual card view) -->
+  <style>
+    .tabbar { display:flex; gap:8px; margin-bottom:12px; }
+    .tabbtn {
+      flex:1; background:#d9dee5; color:#2c3e50; border:none;
+      border-radius:12px; padding:10px; font-weight:700; cursor:pointer;
+    }
+    .tabbtn.active { background:#3498db; color:#fff; }
+    .pdf-card { display:none; }
+    .drop {
+      border:2px dashed #99a3b3; border-radius:12px; padding:16px; text-align:center;
+      color:#7b8794; margin-bottom:10px; user-select:none;
+      outline:none;
+      transition: box-shadow .15s ease, background .15s ease;
+    }
+    .drop:focus {
+      box-shadow: 0 0 0 3px rgba(52,152,219,.25);
+      background:#f7fbff;
+    }
+    .paste-hint { font-size:12px; color:#6b7280; margin-top:6px; }
+    .page-block {
+      background:#f7fafc; border-radius:12px; padding:10px; margin-top:12px;
+    }
+    .page-title { font-weight:800; margin-bottom:6px; color:#111827; }
+    .page-meta { color:#6b7280; font-size:12px; margin-bottom:8px; }
+    .company-card {
+      background:#fff; border:1px solid #e5e7eb; border-radius:10px;
+      padding:10px; margin:8px 0;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .kv {
+      display:grid; grid-template-columns: 44% 56%;
+      row-gap:6px; column-gap:8px; font-size:14px;
+    }
+    .kv .k { color:#374151; font-weight:600; }
+    .kv .v { color:#111827; text-align:right; }
+    .tag { display:inline-block; background:#eef2ff; color:#3730a3; font-size:11px; padding:3px 6px; border-radius:999px; margin-right:6px; }
+
+    .browse-wrap { text-align:center; margin:6px 0 2px; }
+    .browse-btn {
+      display:inline-block; padding:8px 12px; border-radius:8px; border:none; cursor:pointer;
+      background:#e5ecf6; color:#1f2a44; font-weight:700; font-size:12px;
+    }
+    .browse-btn:hover { background:#d6e3f7; }
+  </style>
 </head>
 <body>
   <div class="container">
-    <div class="calculator">
+
+    <!-- Tabs -->
+    <div class="tabbar">
+      <button id="tabManual" class="tabbtn active" onclick="switchTab('manual')">Manual Entry</button>
+      <button id="tabPdf" class="tabbtn" onclick="switchTab('pdf')">Upload PDF</button>
+    </div>
+
+    <!-- Manual (unchanged) -->
+    <div id="manualCard" class="calculator">
       <h2>📊 PSX Stock Commission Calculator</h2>
 
       <div id="entries">
@@ -129,55 +169,74 @@
 
       <div id="output"></div>
     </div>
+
+    <!-- PDF/Image Extract -->
+    <div id="pdfCard" class="calculator pdf-card">
+      <h2>📄 Upload Contract Note (Local)</h2>
+
+      <!-- Focus to paste; click no longer opens dialog -->
+      <div id="drop" class="drop" tabindex="0">
+        Drag & Drop PDFs / Images here — or press <b>⌘V</b> to paste a screenshot
+        <div class="paste-hint">Tip: use ⌘⌃⇧-4 on macOS, then click here and press ⌘V</div>
+      </div>
+
+      <div class="browse-wrap">
+        <button id="browseBtn" class="browse-btn" type="button">Browse Files…</button>
+      </div>
+      <input id="fileInput" type="file" accept="application/pdf,image/*" multiple style="display:none">
+
+      <div id="pdfOut"></div>
+    </div>
   </div>
 
+  <!-- pdf.js + tesseract.js (CDNs) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+
   <script>
+    /* ---------- Tabs ---------- */
+    function switchTab(which){
+      const mBtn=document.getElementById('tabManual'), pBtn=document.getElementById('tabPdf');
+      const m=document.getElementById('manualCard'), p=document.getElementById('pdfCard');
+      if(which==='manual'){ mBtn.classList.add('active'); pBtn.classList.remove('active'); m.style.display='block'; p.style.display='none'; }
+      else { pBtn.classList.add('active'); mBtn.classList.remove('active'); p.style.display='block'; m.style.display='none'; }
+    }
+
+    /* ---------- Manual (unchanged) ---------- */
     function addRow() {
       const entry = document.createElement("div");
       entry.className = "entry";
       entry.innerHTML = `
         <label>Quantity</label>
         <input type="number" placeholder="Enter Quantity" class="qty">
-
         <label>Rate per Share</label>
         <input type="number" step="0.01" placeholder="Enter Rate" class="rate">
-
         <label>Broker Fee per Share</label>
-        <input type="number" step="0.0001" placeholder="Enter Broker Fee/Share" class="broker">
-      `;
+        <input type="number" step="0.0001" placeholder="Enter Broker Fee/Share" class="broker">`;
       document.getElementById("entries").appendChild(entry);
     }
-
     function calculate() {
       const rows = document.querySelectorAll("#entries .entry");
       let totalQty = 0, grossAmount = 0, brokerAmount = 0;
-
       rows.forEach(row => {
         const qty = parseFloat(row.querySelector(".qty")?.value);
         const rate = parseFloat(row.querySelector(".rate")?.value);
         const broker = parseFloat(row.querySelector(".broker")?.value);
-
         if (!isNaN(qty) && !isNaN(rate) && !isNaN(broker)) {
-          totalQty += qty;
-          grossAmount += qty * rate;
-          brokerAmount += qty * broker;
+          totalQty += qty; grossAmount += qty * rate; brokerAmount += qty * broker;
         }
       });
-
       const sst = parseFloat(document.getElementById("sst").value) || 0;
       const cdc = parseFloat(document.getElementById("cdc").value) || 0;
-
       if (totalQty === 0) {
         document.getElementById("output").innerHTML =
           "<span style='color:red;'>Please enter at least one row with valid values.</span>";
         return;
       }
-
       const avgRate = grossAmount / totalQty;
       const totalCharges = brokerAmount + sst + cdc;
       const netAmount = grossAmount + totalCharges;
       const commissionPerShare = totalCharges / totalQty;
-
       document.getElementById("output").innerHTML = `
         <strong>Total Shares:</strong> ${totalQty}<br>
         <strong>Gross Amount:</strong> PKR ${grossAmount.toFixed(2)}<br>
@@ -187,27 +246,247 @@
         <strong>CDC Charges:</strong> PKR ${cdc.toFixed(2)}<br>
         <strong>Total Charges:</strong> PKR ${totalCharges.toFixed(2)}<br>
         <strong>Net Amount:</strong> PKR ${netAmount.toFixed(2)}<br>
-        <strong>Commission per Share:</strong> PKR ${commissionPerShare.toFixed(6)}
-      `;
+        <strong>Commission per Share:</strong> PKR ${commissionPerShare.toFixed(6)}`;
     }
-
     function clearAll() {
       const entriesDiv = document.getElementById("entries");
       entriesDiv.innerHTML = `
         <div class="entry">
           <label>Quantity</label>
           <input type="number" placeholder="Enter Quantity" class="qty">
-
           <label>Rate per Share</label>
           <input type="number" step="0.01" placeholder="Enter Rate" class="rate">
-
           <label>Broker Fee per Share</label>
           <input type="number" step="0.0001" placeholder="Enter Broker Fee/Share" class="broker">
-        </div>
-      `;
+        </div>`;
       document.getElementById("sst").value = "";
       document.getElementById("cdc").value = "";
       document.getElementById("output").innerHTML = "";
+    }
+
+    /* ---------- Helpers ---------- */
+    const drop = document.getElementById('drop');
+    const browseBtn = document.getElementById('browseBtn');
+    const fileInput = document.getElementById('fileInput');
+    const pdfOut = document.getElementById('pdfOut');
+
+    // Friendlier UX: click just focuses (so you can ⌘V); use dedicated "Browse Files…" button to open dialog
+    drop.addEventListener('click', ()=> drop.focus());
+    browseBtn.addEventListener('click', ()=> fileInput.click());
+
+    drop.addEventListener('dragover', e=>{e.preventDefault(); drop.style.background='#eef5ff';});
+    drop.addEventListener('dragleave', ()=>drop.style.background='');
+    drop.addEventListener('drop', e=>{ e.preventDefault(); drop.style.background=''; handleFiles(e.dataTransfer.files); });
+    fileInput.addEventListener('change', e=>handleFiles(e.target.files));
+
+    const fmt2 = n => Number(n||0).toLocaleString('en-PK',{minimumFractionDigits:2, maximumFractionDigits:2});
+    const fmt4 = n => Number(n||0).toFixed(4);
+    const fmt6 = n => Number(n||0).toFixed(6);
+    const num  = s => s ? parseFloat(String(s).replace(/,/g,'')) : 0;
+
+    function cleanCompanyName(s){
+      if(!s) return '';
+      let n = s.replace(/^(?:Amount\s+)+/i,'').trim();
+      // drop leading contract/codes like BSYS19629010925 / BTOMCL19629010925 etc.
+      n = n.replace(/^[A-Z0-9\-]{6,}\s+/,'');
+      return n.trim();
+    }
+
+    /* ---------- File handling ---------- */
+    async function handleFiles(files){
+      pdfOut.innerHTML = '';
+      for (const f of files){
+        if (f.type === 'application/pdf') {
+          const pages = await extractPagesFromPdf(f);
+          pages.forEach((p, i) => renderPageResult(f.name, i+1, pages.length, p.text));
+        } else if (f.type.startsWith('image/')) {
+          const text = await extractTextFromImage(f);
+          renderPageResult(f.name, 1, 1, text);
+        }
+      }
+    }
+
+    async function extractPagesFromPdf(file){
+      const data = new Uint8Array(await file.arrayBuffer());
+      const pdf = await pdfjsLib.getDocument({data}).promise;
+      const pages = [];
+      for(let p=1;p<=pdf.numPages;p++){
+        const page = await pdf.getPage(p);
+        const content = await page.getTextContent();
+        const text = content.items.map(it=>it.str).join(' ');
+        pages.push({index:p, text});
+      }
+      return pages;
+    }
+
+    async function extractTextFromImage(file){
+      const { data: { text }} = await Tesseract.recognize(
+        URL.createObjectURL(file), 'eng',
+        { tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz:.%/,- ' }
+      );
+      return text.replace(/\s+/g,' ');
+    }
+
+    /* ---------- Parsing ---------- */
+    function stripHeaders(t){
+      return t
+        .replace(/Company\s+Quantity\s+Rate\s+Gross\s+Amount\s+Brok\.\s+Rate\s+Brok\.\s+Amount\s+Amount/gi,' ')
+        .replace(/\bTotal\s+[\d,]+\s+[\d.]+\s+[\d,]+\.\d+\s+[\d.]+\s+[\d,]+\.\d+\s+[\d,]+\.\d+/gi,' ')
+        .replace(/\s{2,}/g,' ');
+    }
+
+    // tolerant numeric picker used by SST/CDC parsing
+    function pickNum(txt, patterns) {
+      for (const p of patterns) {
+        const m = txt.match(p);
+        if (m && m[1]) {
+          const cleaned = m[1].replace(/[^\d.,-]/g, '').replace(/,/g, '');
+          const val = parseFloat(cleaned);
+          if (!isNaN(val)) return val;
+        }
+      }
+      return 0;
+    }
+
+    function parsePage(text){
+      const t = stripHeaders(text);
+
+      // Robust SST/CDC (S.S.T:, SST:, Sales Tax:, CDC Charge:, CDC:, etc.)
+      const sst = pickNum(t, [
+        /S\.?\s*S\.?\s*T\.?\s*:?\s*([\d.,]+)/i,
+        /Sales\s*Tax\s*:?\s*([\d.,]+)/i
+      ]);
+      const cdc = pickNum(t, [
+        /CDC\s*Charges?\s*:?\s*([\d.,]+)/i,
+        /CDC\s*:?\s*([\d.,]+)/i
+      ]);
+
+      // Row pattern: Company  Qty  Rate  Gross  Brok.Rate  Brok.Amount  Amount
+      const re = /([A-Za-z0-9&().,'\-\/ ]+?)\s+([\d,]+)\s+([\d]+\.\d+)\s+([\d,]+\.\d{2})\s+([\d]+\.\d+)\s+([\d,]+\.\d{2})\s+([\d,]+\.\d{2})/g;
+
+      const grouped = {};
+      let m;
+      while((m = re.exec(t)) !== null){
+        const name = cleanCompanyName(m[1]);
+        const qty = num(m[2]), rate = num(m[3]), gross = num(m[4]);
+        const brokRate = num(m[5]), brokAmt = num(m[6]), amount = num(m[7]);
+        if(!name || isNaN(qty) || qty===0) continue;
+        if(!grouped[name]) grouped[name] = { qty:0, gross:0, brokAmt:0, amount:0 };
+        grouped[name].qty     += qty;
+        grouped[name].gross   += gross;
+        grouped[name].brokAmt += brokAmt;
+        grouped[name].amount  += amount;
+      }
+
+      let totalQty = 0;
+      Object.values(grouped).forEach(v=> totalQty += v.qty);
+      const taxPerShare = totalQty>0 ? (sst + cdc) / totalQty : 0;
+
+      // Build aggregated rows with weighted averages + company-level commission/share
+      const rows = Object.keys(grouped).sort().map(name=>{
+        const v = grouped[name];
+        const avgRate   = v.qty>0 ? v.gross / v.qty : 0;
+        const avgBrokRt = v.qty>0 ? v.brokAmt / v.qty : 0; // per-share
+        const commPerShare = avgBrokRt + taxPerShare;
+        return {
+          company: name,
+          qty: v.qty,
+          rate: avgRate,
+          gross: v.gross,
+          brokRate: avgBrokRt,
+          brokAmt: v.brokAmt,
+          amount: v.amount,
+          commPerShare,
+        };
+      });
+
+      return { rows, sst, cdc };
+    }
+
+    /* ---------- Paste support (Cmd/Ctrl + V) ---------- */
+    function flashDropZone() {
+      drop.style.boxShadow = '0 0 0 3px rgba(52,152,219,0.35)';
+      setTimeout(()=> drop.style.boxShadow = '', 600);
+    }
+    async function blobToPngFile(blob, nameBase = 'pasted') {
+      if (/^image\/(png|jpeg|jpg)$/i.test(blob.type)) {
+        return new File([blob], `${nameBase}.png`, { type: 'image/png' });
+      }
+      const bmp = await createImageBitmap(blob);
+      const canvas = document.createElement('canvas');
+      canvas.width = bmp.width; canvas.height = bmp.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(bmp, 0, 0);
+      const pngBlob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+      return new File([pngBlob], `${nameBase}.png`, { type: 'image/png' });
+    }
+    async function handlePasteEvent(e) {
+      const cd = e.clipboardData || window.clipboardData;
+      if (!cd || !cd.items) return;
+
+      const files = [];
+      for (const item of cd.items) {
+        if (item.kind === 'file' && item.type.startsWith('image/')) {
+          const blob = item.getAsFile();
+          const file = await blobToPngFile(blob, `pasted-${Date.now()}`);
+          files.push(file);
+        } else if (item.kind === 'string' && item.type === 'text/plain') {
+          const text = await new Promise(res => item.getAsString(res));
+          if (text && text.startsWith('data:image/')) {
+            const b = await (await fetch(text)).blob();
+            const file = await blobToPngFile(b, `pasted-${Date.now()}`);
+            files.push(file);
+          }
+        }
+      }
+      if (files.length) {
+        e.preventDefault();
+        flashDropZone();
+        handleFiles(files);
+      }
+    }
+    // Global + focused drop zone paste
+    document.addEventListener('paste', handlePasteEvent);
+    drop.addEventListener('paste', handlePasteEvent);
+
+    /* ---------- Rendering (vertical two-column cards) ---------- */
+    function renderPageResult(filename, pageNo, pageCount, text){
+      const parsed = parsePage(text);
+      const container = document.createElement('div');
+      container.className = 'page-block';
+      container.innerHTML = `
+        <div class="page-title">${filename} — Page ${pageNo}/${pageCount}</div>
+        <div class="page-meta">
+          <span class="tag">S.S.T: PKR ${fmt2(parsed.sst)}</span>
+          <span class="tag">CDC Charges: PKR ${fmt2(parsed.cdc)}</span>
+        </div>
+      `;
+
+      if (parsed.rows.length === 0){
+        const empty = document.createElement('div');
+        empty.className = 'company-card';
+        empty.textContent = 'No rows detected on this page.';
+        container.appendChild(empty);
+      } else {
+        parsed.rows.forEach(r=>{
+          const card = document.createElement('div');
+          card.className = 'company-card';
+          card.innerHTML = `
+            <div class="kv">
+              <div class="k">Company</div><div class="v">${r.company}</div>
+              <div class="k">Quantity</div><div class="v">${r.qty.toLocaleString()}</div>
+              <div class="k">Weighted Avg Rate</div><div class="v">${fmt4(r.rate)}</div>
+              <div class="k">Gross Amount</div><div class="v">PKR ${fmt2(r.gross)}</div>
+              <div class="k">Avg Brok. Rate (/share)</div><div class="v">${fmt4(r.brokRate)}</div>
+              <div class="k">Brok. Amount</div><div class="v">PKR ${fmt2(r.brokAmt)}</div>
+              <div class="k">Amount</div><div class="v">PKR ${fmt2(r.amount)}</div>
+              <div class="k">Comm./Share</div><div class="v">PKR ${fmt6(r.commPerShare)}</div>
+            </div>`;
+          container.appendChild(card);
+        });
+      }
+
+      pdfOut.appendChild(container);
     }
   </script>
 </body>
